@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Physics Simulator Suite</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge" aria-hidden="true"></div>
+        <div>
+          <h1>Physics Simulator Suite</h1>
+          <div class="subtitle">Two interactive textbook examples • shared engine • uniform UI</div>
+        </div>
+      </div>
+      <div class="pill">Shortcuts: <span class="kbd">Space</span> Play/Pause • <span class="kbd">R</span> Reset</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Choose a simulator</div>
+          <div class="small">Runs locally in your browser</div>
+        </div>
+        <div class="cardBody">
+          <div class="list">
+            <a class="simLink" href="simulator_1_weight.html">
+              <div>
+                <div><strong>Simulator A</strong> — Weight vs Mass (W = m·g)</div>
+                <div class="small">Adjust mass and gravitational field strength. See weight change instantly.</div>
+              </div>
+              <div>→</div>
+            </a>
+            <a class="simLink" href="simulator_2_friction.html">
+              <div>
+                <div><strong>Simulator B</strong> — Friction Block (threshold + motion)</div>
+                <div class="small">Adjust μ, mass, and applied force. Observe when motion starts.</div>
+              </div>
+              <div>→</div>
+            </a>
+
+            <a class="simLink" href="simulator_3_gravity_field.html">
+              <div>
+                <div><strong>Simulator C</strong> — Gravitational Field vs Distance (g ∝ 1/r²)</div>
+                <div class="small">Adjust distance r and observe how field strength and weight change.</div>
+              </div>
+              <div>→</div>
+            </a>
+          </div>
+
+          <div class="toast" style="opacity:.9; margin-top:14px;">
+            Each simulator logs interactions (slider changes + play time). Use <strong>Download Log</strong> to export JSON.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">How to use</div>
+        </div>
+        <div class="cardBody">
+          <div class="hint">
+            <strong>Goal:</strong> change one variable at a time to discover the relationship.<br/>
+            <strong>Tip:</strong> After you spot a pattern, click <em>Log Observation</em> and write a short note.
+          </div>
+          <div class="toast" style="opacity:.9; margin-top:12px;">
+            Recommended workflow: (1) predict → (2) manipulate sliders → (3) observe → (4) explain.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

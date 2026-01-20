@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Simulator B — Friction Block</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge" aria-hidden="true"></div>
+        <div>
+          <h1 id="simTitle">Simulator B — Friction Block</h1>
+          <div class="subtitle"><a href="index.html">← Back</a> • shared engine • uniform UI</div>
+        </div>
+      </div>
+      <div class="pill">Status: <span id="status">Ready</span></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Visualization</div>
+          <div class="small">Canvas animation synchronized to calculations</div>
+        </div>
+        <div class="canvasWrap">
+          <canvas id="canvas" width="900" height="500" aria-label="Simulation canvas"></canvas>
+        </div>
+        <div class="bottomBar">
+          <div class="btnRow">
+            <button class="primary" id="btnPlay">Play</button>
+            <button id="btnPause">Pause</button>
+            <button class="danger" id="btnReset">Reset</button>
+          </div>
+          <div class="btnRow">
+            <button class="ghost" id="btnLog">Log Observation</button>
+            <button class="ghost" id="btnDownload">Download Log</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Controls & Outputs</div>
+          <div class="small">Adjust parameters in real time</div>
+        </div>
+        <div class="cardBody controls">
+          <div class="controlGroup">
+            <div class="groupTitle">
+              <span>Parameter Controls</span>
+              <span class="small">Real-time sliders</span>
+            </div>
+            <div id="sliderContainer"></div>
+          </div>
+
+          <div class="controlGroup">
+            <div class="groupTitle">
+              <span>Live Outputs</span>
+              <span class="small">Key values</span>
+            </div>
+            <div class="outputs" id="outputContainer"></div>
+          </div>
+
+          <div class="toast hint" id="hint"></div>
+          <div class="toast" id="toast" style="opacity:.85;">Tip: Use <span class="kbd">Space</span> to Play/Pause, <span class="kbd">R</span> to Reset.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared_engine.js"></script>
+  <script>
+  
+(function(){
+  const sim = {
+    id: "simB_friction",
+    name: "Simulator B — Friction Block (threshold + motion)",
+    hintText: "Find the threshold: increase force until the block JUST starts moving. What equals what at that moment?",
+    params: [
+      { key:"mass", label:"Mass", min:1, max:50, default:10, step:1, unit:"kg", decimals:0 },
+      { key:"mu", label:"Coefficient of friction (μ)", min:0, max:1, default:0.30, step:0.01, unit:"", decimals:2 },
+      { key:"force", label:"Applied force", min:0, max:200, default:50, step:1, unit:"N", decimals:0 },
+      { key:"g", label:"Gravitational field strength", min:5, max:15, default:10, step:0.5, unit:"N/kg", decimals:1 }
+    ],
+    outputs: [
+      { key:"normal", label:"Normal force (N)", unit:"N", decimals:2 },
+      { key:"friction_max", label:"Max friction (μN)", unit:"N", decimals:2 },
+      { key:"net_force", label:"Net force", unit:"N", decimals:2 },
+      { key:"acceleration", label:"Acceleration", unit:"m/s²", decimals:2 },
+      { key:"velocity", label:"Velocity", unit:"m/s", decimals:2 },
+      { key:"position", label:"Position", unit:"m", decimals:2 }
+    ],
+    initState: (params)=>({
+      t: 0,
+      x: 0,
+      v: 0,
+      isMoving: false
+    }),
+    step: (state, params, dt)=>{
+      // forces
+      const normal = params.mass * params.g;
+      const frictionMax = params.mu * normal;
+
+      // simplified model:
+      // - if not moving and applied <= frictionMax => static friction cancels it (net=0)
+      // - if applied > frictionMax => motion begins; kinetic friction ~ frictionMax (same μ)
+      let friction = 0;
+      let net = 0;
+
+      const eps = 1e-6;
+      if(Math.abs(state.v) < 0.02 && !state.isMoving){
+        if(params.force <= frictionMax + eps){
+          friction = params.force; // static friction matches applied
+          net = 0;
+          state.isMoving = false;
+          state.v = 0; // stick
+        }else{
+          // overcome static friction
+          friction = frictionMax;
+          net = params.force - friction;
+          state.isMoving = true;
+        }
+      }else{
+        // moving: kinetic friction opposes motion direction (assume rightward only here)
+        friction = frictionMax;
+        net = params.force - friction;
+        state.isMoving = true;
+      }
+
+      const a = net / params.mass;
+
+      // integrate only if playing (dt>0). When paused dt=0 -> state stable.
+      if(dt > 0){
+        state.t += dt;
+        state.v += a * dt;
+
+        // prevent tiny backward due to negative net
+        if(state.v < 0) state.v = 0;
+
+        state.x += state.v * dt;
+
+        // keep within a window
+        if(state.x > 10){
+          state.x = 10;
+          state.v = 0;
+        }
+
+        // if net<=0 and speed small -> stop
+        if(net <= 0.0001 && state.v < 0.05){
+          state.v = 0;
+          state.isMoving = false;
+        }
+      }
+
+      return {
+        state,
+        outputs: {
+          normal,
+          friction_max: frictionMax,
+          net_force: net,
+          acceleration: a,
+          velocity: state.v,
+          position: state.x
+        }
+      };
+    },
+    render: (ctx, canvas, state, params, outputs)=>{
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.02)";
+      ctx.fillRect(0,0,w,h);
+
+      // ground
+      const groundY = h*0.72;
+      ctx.strokeStyle = "rgba(255,255,255,0.16)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(18, groundY);
+      ctx.lineTo(w-18, groundY);
+      ctx.stroke();
+
+      // roughness pattern
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 2;
+      for(let x=20; x<w-20; x+=18){
+        ctx.beginPath();
+        ctx.moveTo(x, groundY+8);
+        ctx.lineTo(x+8, groundY+14);
+        ctx.stroke();
+      }
+
+      // map position meters (0..10) to pixels
+      const left = 40;
+      const right = w - 40;
+      const trackW = right - left;
+      const px = left + (state.x/10)*trackW;
+
+      // block
+      const bw = Math.min(120, w*0.18);
+      const bh = Math.min(90, h*0.16);
+      const bx = px - bw/2;
+      const by = groundY - bh;
+
+      // block body
+      roundRect(ctx, bx, by, bw, bh, 14);
+      ctx.fillStyle = "rgba(255,255,255,0.06)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // label
+      ctx.fillStyle = "rgba(233,236,245,0.92)";
+      ctx.font = "700 13px ui-sans-serif, system-ui";
+      ctx.fillText("Block", bx+14, by+24);
+
+      // forces arrows (scaled)
+      const F = params.force;
+      const fMax = outputs.friction_max || 0;
+      const net = outputs.net_force || 0;
+
+      // scale arrows relative to 200N
+      const scale = Math.min(1, w/900) * 120;
+      drawArrow(ctx, bx + bw/2, by + bh/2, bx + bw/2 + (F/200)*scale, by + bh/2, "rgba(106,166,255,0.95)", "F_push");
+      drawArrow(ctx, bx + bw/2, by + bh/2 + 26, bx + bw/2 - (Math.min(F,fMax)/200)*scale, by + bh/2 + 26, "rgba(255,106,106,0.90)", "F_friction");
+
+      // net indicator
+      ctx.fillStyle = "rgba(170,179,209,0.95)";
+      ctx.font = "500 13px ui-sans-serif, system-ui";
+      const status = (F <= fMax + 1e-6) ? "Static (not moving)" : (state.isMoving ? "Moving" : "Stopped");
+      ctx.fillText(`State: ${status}`, 18, 28);
+
+      // threshold marker
+      ctx.fillText(`Threshold (μN): ${fMax.toFixed(2)} N`, 18, 52);
+
+      // track labels
+      ctx.font = "500 12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      ctx.fillStyle = "rgba(170,179,209,0.9)";
+      ctx.fillText("0 m", left-6, groundY+30);
+      ctx.fillText("10 m", right-34, groundY+30);
+
+      // discovery prompt
+      ctx.font = "500 13px ui-sans-serif, system-ui";
+      ctx.fillStyle = "rgba(170,179,209,0.95)";
+      ctx.fillText("Try: increase Applied force slowly until motion begins (F_push ≈ μN).", 18, h-18);
+
+      ctx.restore();
+
+      function roundRect(ctx,x,y,w,h,r){
+        const rr = Math.min(r, w/2, h/2);
+        ctx.beginPath();
+        ctx.moveTo(x+rr, y);
+        ctx.arcTo(x+w, y, x+w, y+h, rr);
+        ctx.arcTo(x+w, y+h, x, y+h, rr);
+        ctx.arcTo(x, y+h, x, y, rr);
+        ctx.arcTo(x, y, x+w, y, rr);
+        ctx.closePath();
+      }
+
+      function drawArrow(ctx, x1,y1,x2,y2,color,label){
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+
+        // arrowhead
+        const dx = x2-x1, dy = y2-y1;
+        const ang = Math.atan2(dy,dx);
+        const head = 10;
+        ctx.beginPath();
+        ctx.moveTo(x2,y2);
+        ctx.lineTo(x2 - head*Math.cos(ang - Math.PI/6), y2 - head*Math.sin(ang - Math.PI/6));
+        ctx.lineTo(x2 - head*Math.cos(ang + Math.PI/6), y2 - head*Math.sin(ang + Math.PI/6));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.font = "600 12px ui-sans-serif, system-ui";
+        ctx.fillText(label, x2 + 8, y2 - 6);
+        ctx.restore();
+      }
+    }
+  };
+
+  const ui = {
+    canvas: document.getElementById("canvas"),
+    ctx: document.getElementById("canvas").getContext("2d"),
+    simTitle: document.getElementById("simTitle"),
+    status: document.getElementById("status"),
+    hint: document.getElementById("hint"),
+    toast: document.getElementById("toast"),
+    sliderContainer: document.getElementById("sliderContainer"),
+    outputContainer: document.getElementById("outputContainer"),
+    btnPlay: document.getElementById("btnPlay"),
+    btnPause: document.getElementById("btnPause"),
+    btnReset: document.getElementById("btnReset"),
+    btnLog: document.getElementById("btnLog"),
+    btnDownload: document.getElementById("btnDownload")
+  };
+
+  const engine = new window.SharedPhysicsEngine.SharedPhysicsEngine(sim, ui);
+  engine.init();
+
+  window.addEventListener("beforeunload", ()=> engine.destroy());
+})();
+
+  </script>
+</body>
+</html>

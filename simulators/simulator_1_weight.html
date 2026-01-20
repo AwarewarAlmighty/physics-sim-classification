@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Simulator A — Weight vs Mass (W = m·g)</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge" aria-hidden="true"></div>
+        <div>
+          <h1 id="simTitle">Simulator A — Weight vs Mass (W = m·g)</h1>
+          <div class="subtitle"><a href="index.html">← Back</a> • shared engine • uniform UI</div>
+        </div>
+      </div>
+      <div class="pill">Status: <span id="status">Ready</span></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Visualization</div>
+          <div class="small">Canvas animation synchronized to calculations</div>
+        </div>
+        <div class="canvasWrap">
+          <canvas id="canvas" width="900" height="500" aria-label="Simulation canvas"></canvas>
+        </div>
+        <div class="bottomBar">
+          <div class="btnRow">
+            <button class="primary" id="btnPlay">Play</button>
+            <button id="btnPause">Pause</button>
+            <button class="danger" id="btnReset">Reset</button>
+          </div>
+          <div class="btnRow">
+            <button class="ghost" id="btnLog">Log Observation</button>
+            <button class="ghost" id="btnDownload">Download Log</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Controls & Outputs</div>
+          <div class="small">Adjust parameters in real time</div>
+        </div>
+        <div class="cardBody controls">
+          <div class="controlGroup">
+            <div class="groupTitle">
+              <span>Parameter Controls</span>
+              <span class="small">Real-time sliders</span>
+            </div>
+            <div id="sliderContainer"></div>
+          </div>
+
+          <div class="controlGroup">
+            <div class="groupTitle">
+              <span>Live Outputs</span>
+              <span class="small">Key values</span>
+            </div>
+            <div class="outputs" id="outputContainer"></div>
+          </div>
+
+          <div class="toast hint" id="hint"></div>
+          <div class="toast" id="toast" style="opacity:.85;">Tip: Use <span class="kbd">Space</span> to Play/Pause, <span class="kbd">R</span> to Reset.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared_engine.js"></script>
+  <script>
+  
+(function(){
+  const sim = {
+    id: "simA_weight",
+    name: "Simulator A — Weight vs Mass (W = m·g)",
+    hintText: "Hold mass constant and change g (Earth→Moon). What changes? What stays the same?",
+    params: [
+      { key:"mass", label:"Mass", min:1, max:100, default:10, step:1, unit:"kg", decimals:0 },
+      { key:"g", label:"Gravitational field strength", min:1, max:25, default:10, step:0.5, unit:"N/kg", decimals:1 }
+    ],
+    outputs: [
+      { key:"weight", label:"Weight (W)", unit:"N", decimals:2 },
+      { key:"mass_display", label:"Mass (constant)", unit:"kg", decimals:0 },
+      { key:"g_display", label:"Field strength (g)", unit:"N/kg", decimals:1 }
+    ],
+    initState: (params)=>({
+      // for animation: a spring scale needle position
+      needle: 0
+    }),
+    step: (state, params, dt)=>{
+      const weight = params.mass * params.g;
+      // animate needle smoothly toward normalized weight
+      const maxW = 100 * 25; // max slider weight
+      const target = Math.min(1, weight / maxW);
+      const k = 1 - Math.exp(- (dt||0.016) * 8);
+      state.needle = state.needle + (target - state.needle) * k;
+
+      return {
+        state,
+        outputs: {
+          weight,
+          mass_display: params.mass,
+          g_display: params.g
+        }
+      };
+    },
+    render: (ctx, canvas, state, params, outputs)=>{
+      // coordinate in CSS pixels because engine sets transform
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+
+      // background grid
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.02)";
+      ctx.fillRect(0,0,w,h);
+
+      // title
+      ctx.fillStyle = "rgba(233,236,245,0.95)";
+      ctx.font = "600 16px ui-sans-serif, system-ui";
+      ctx.fillText("Weight depends on g (environment), mass does not.", 18, 28);
+
+      // draw a spring scale gauge
+      const cx = w*0.35, cy = h*0.55;
+      const radius = Math.min(w,h)*0.28;
+
+      // outer circle
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI*2);
+      ctx.stroke();
+
+      // ticks
+      ctx.strokeStyle = "rgba(255,255,255,0.16)";
+      ctx.lineWidth = 2;
+      for(let i=0;i<=10;i++){
+        const ang = (-Math.PI*0.75) + (i/10)*(Math.PI*1.5);
+        const x1 = cx + Math.cos(ang)*(radius*0.80);
+        const y1 = cy + Math.sin(ang)*(radius*0.80);
+        const x2 = cx + Math.cos(ang)*(radius*0.92);
+        const y2 = cy + Math.sin(ang)*(radius*0.92);
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      }
+
+      // needle (maps 0..1 to -135..+135 degrees)
+      const ang = (-Math.PI*0.75) + state.needle*(Math.PI*1.5);
+      ctx.strokeStyle = "rgba(106,166,255,0.95)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(ang)*(radius*0.76), cy + Math.sin(ang)*(radius*0.76));
+      ctx.stroke();
+
+      // center dot
+      ctx.fillStyle = "rgba(124,242,200,0.95)";
+      ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
+
+      // numeric readout
+      ctx.fillStyle = "rgba(233,236,245,0.92)";
+      ctx.font = "700 26px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      const weightStr = (outputs.weight ?? 0).toFixed(2) + " N";
+      ctx.fillText(weightStr, cx - ctx.measureText(weightStr).width/2, cy + radius + 44);
+
+      ctx.font = "500 13px ui-sans-serif, system-ui";
+      ctx.fillStyle = "rgba(170,179,209,0.95)";
+      ctx.fillText("Try: set mass=10 kg and slide g from 10 → 1.6 (Moon).", 18, h-18);
+
+      // small legend panel on right
+      const px = w*0.68, py = h*0.22, pw = w*0.27, ph = h*0.56;
+      ctx.strokeStyle = "rgba(255,255,255,0.14)";
+      ctx.lineWidth = 2;
+      roundRect(ctx, px, py, pw, ph, 14);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      roundRect(ctx, px, py, pw, ph, 14);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(233,236,245,0.95)";
+      ctx.font = "700 14px ui-sans-serif, system-ui";
+      ctx.fillText("Live relationship", px+16, py+28);
+
+      ctx.font = "500 13px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      ctx.fillStyle = "rgba(233,236,245,0.90)";
+      ctx.fillText(`W = m × g`, px+16, py+54);
+      ctx.fillStyle = "rgba(170,179,209,0.95)";
+      ctx.font = "500 12px ui-sans-serif, system-ui";
+      ctx.fillText("Mass: object property", px+16, py+84);
+      ctx.fillText("g: environment property", px+16, py+104);
+
+      // bar showing contribution
+      const barX = px+16, barY = py+136, barW = pw-32, barH = 14;
+      ctx.fillStyle = "rgba(255,255,255,0.10)";
+      roundRect(ctx, barX, barY, barW, barH, 999);
+      ctx.fill();
+      ctx.fillStyle = "rgba(106,166,255,0.55)";
+      roundRect(ctx, barX, barY, barW*state.needle, barH, 999);
+      ctx.fill();
+
+      ctx.restore();
+
+      function roundRect(ctx,x,y,w,h,r){
+        const rr = Math.min(r, w/2, h/2);
+        ctx.beginPath();
+        ctx.moveTo(x+rr, y);
+        ctx.arcTo(x+w, y, x+w, y+h, rr);
+        ctx.arcTo(x+w, y+h, x, y+h, rr);
+        ctx.arcTo(x, y+h, x, y, rr);
+        ctx.arcTo(x, y, x+w, y, rr);
+        ctx.closePath();
+      }
+    }
+  };
+
+  const ui = {
+    canvas: document.getElementById("canvas"),
+    ctx: document.getElementById("canvas").getContext("2d"),
+    simTitle: document.getElementById("simTitle"),
+    status: document.getElementById("status"),
+    hint: document.getElementById("hint"),
+    toast: document.getElementById("toast"),
+    sliderContainer: document.getElementById("sliderContainer"),
+    outputContainer: document.getElementById("outputContainer"),
+    btnPlay: document.getElementById("btnPlay"),
+    btnPause: document.getElementById("btnPause"),
+    btnReset: document.getElementById("btnReset"),
+    btnLog: document.getElementById("btnLog"),
+    btnDownload: document.getElementById("btnDownload")
+  };
+
+  const engine = new window.SharedPhysicsEngine.SharedPhysicsEngine(sim, ui);
+  engine.init();
+
+  window.addEventListener("beforeunload", ()=> engine.destroy());
+})();
+
+  </script>
+</body>
+</html>

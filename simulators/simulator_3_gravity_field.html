@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulator C — Gravity Field vs Distance</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge" aria-hidden="true"></div>
+        <div>
+          <h1 id="simTitle">Simulator C — Gravity Field vs Distance (g ∝ 1/r²)</h1>
+          <div class="subtitle"><a href="index.html">← Back</a> • shared engine • uniform UI</div>
+        </div>
+      </div>
+      <div class="pill">Status: <span id="status">Ready</span></div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: visualization -->
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Visualization</div>
+          <div class="small">Canvas animation synchronized to calculations</div>
+        </div>
+
+        <div class="canvasWrap">
+          <canvas id="canvas" width="900" height="500" aria-label="Simulation canvas"></canvas>
+        </div>
+
+        <div class="bottomBar">
+          <div class="btnRow">
+            <button class="primary" id="btnPlay">Play</button>
+            <button id="btnPause">Pause</button>
+            <button class="danger" id="btnReset">Reset</button>
+          </div>
+          <div class="btnRow">
+            <button class="ghost" id="btnLog">Log Observation</button>
+            <button class="ghost" id="btnDownload">Download Log</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: controls + outputs -->
+      <div class="card">
+        <div class="cardHeader">
+          <div class="cardTitle">Controls &amp; Outputs</div>
+          <div class="small">Adjust parameters in real time</div>
+        </div>
+
+        <div class="section">
+          <div class="sectionTitleRow">
+            <div class="sectionTitle">Parameter Controls</div>
+            <div class="small">Real-time sliders</div>
+          </div>
+          <div id="sliderContainer"></div>
+        </div>
+
+        <div class="section">
+          <div class="sectionTitleRow">
+            <div class="sectionTitle">Live Outputs</div>
+            <div class="small">Key values</div>
+          </div>
+          <div id="outputContainer" class="outputGrid"></div>
+        </div>
+
+        <div class="hintBox" id="hint">
+          <div class="hintTitle">What to try</div>
+          <div class="hintText">
+            Keep mass constant. Increase distance <b>r</b> and observe how <b>g(r)</b> and <b>W(r)</b> decrease.
+            Try <b>r = 2 → 4</b>: <b>g</b> should become about <b>1/4</b>.
+          </div>
+          <div class="hintFoot">Tip: Use <kbd>Space</kbd> to Play/Pause, <kbd>R</kbd> to Reset.</div>
+        </div>
+
+        <div id="toast" class="toast" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- shared engine MUST load before we instantiate it -->
+  <script src="./shared_engine.js"></script>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      // ---- Simulator C definition (matches shared_engine expectations) ----
+      const simulator = {
+        id: "simC_gravityField",
+        name: "Simulator C — Gravity Field vs Distance (g ∝ 1/r²)",
+
+        // Engine reads p.default, p.min, p.max, p.step, p.unit, etc.
+        params: [
+          { key: "mass", label: "Mass", unit: "kg", min: 1, max: 50, step: 1, default: 10 },
+          { key: "r", label: "Distance (r)", unit: "Rₑ", min: 1, max: 10, step: 0.1, default: 2 },
+          { key: "g0", label: "Surface field (g₀)", unit: "N/kg", min: 5, max: 15, step: 0.1, default: 10 }
+        ],
+
+        outputs: [
+          { key: "g", label: "Field strength g(r)", unit: "N/kg", precision: 2 },
+          { key: "W", label: "Weight W(r)", unit: "N", precision: 2 },
+          { key: "rel", label: "Relative field", unit: "%", precision: 0 }
+        ],
+
+        initState(params) {
+          return { t: 0 };
+        },
+
+        step(state, params, dt) {
+          // g(r) = g0 / r^2
+          const r = Math.max(0.1, params.r);
+          const g = params.g0 / (r * r);
+
+          const outputs = {
+            g,
+            W: params.mass * g,
+            rel: (g / params.g0) * 100
+          };
+
+          state.t += dt;
+          return { state, outputs };
+        },
+
+        render(ctx, canvas, state, params, out) {
+          const w = canvas.width, h = canvas.height;
+
+          // IMPORTANT: set visible styles for dark background
+          ctx.clearRect(0, 0, w, h);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "rgba(255,255,255,0.45)";
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.font = "14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+
+          // Earth
+          const cx = w * 0.28, cy = h * 0.62;
+          const earthR = 55;
+
+          ctx.fillStyle = "rgba(120,190,255,0.85)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, earthR, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Field arrows around Earth (length depends on g/g0)
+          const strength = Math.max(0.05, Math.min(1, out.g / params.g0));
+          const arrowLen = 30 + 140 * strength;
+
+          ctx.strokeStyle = "rgba(180,220,255,0.55)";
+          ctx.fillStyle = "rgba(180,220,255,0.75)";
+
+          for (let i = 0; i < 10; i++) {
+            const ang = (i / 10) * Math.PI * 2;
+            const ax = cx + Math.cos(ang) * (earthR + 25);
+            const ay = cy + Math.sin(ang) * (earthR + 25);
+            const bx = ax + Math.cos(ang) * arrowLen;
+            const by = ay + Math.sin(ang) * arrowLen;
+
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+
+            // arrow head
+            const head = 10;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx - Math.cos(ang - 0.45) * head, by - Math.sin(ang - 0.45) * head);
+            ctx.lineTo(bx - Math.cos(ang + 0.45) * head, by - Math.sin(ang + 0.45) * head);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          // Probe position based on r (in Earth radii)
+          const r = params.r;
+          const px = cx + earthR + r * 55;
+          const py = cy - 90;
+
+          ctx.fillStyle = "rgba(255,255,255,0.9)";
+          ctx.beginPath();
+          ctx.arc(px, py, 10, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Labels
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.fillText(`r = ${r.toFixed(1)} Rₑ`, px + 14, py + 4);
+          ctx.fillText(`g(r) = ${out.g ? out.g.toFixed(2) : "—"} N/kg`, w * 0.06, h * 0.10);
+          ctx.fillText(`W(r) = ${out.W ? out.W.toFixed(2) : "—"} N`, w * 0.06, h * 0.145);
+          ctx.fillText(`relative = ${out.rel ? out.rel.toFixed(0) : "—"}%`, w * 0.06, h * 0.19);
+        }
+      };
+
+      // UI map MUST match what shared_engine.js expects
+      const ui = {
+        canvas: document.getElementById("canvas"),
+        ctx: document.getElementById("canvas").getContext("2d"),
+        simTitle: document.getElementById("simTitle"),
+        status: document.getElementById("status"),
+        hint: document.getElementById("hint"),
+        toast: document.getElementById("toast"),
+        sliderContainer: document.getElementById("sliderContainer"),
+        outputContainer: document.getElementById("outputContainer"),
+        btnPlay: document.getElementById("btnPlay"),
+        btnPause: document.getElementById("btnPause"),
+        btnReset: document.getElementById("btnReset"),
+        btnLog: document.getElementById("btnLog"),
+        btnDownload: document.getElementById("btnDownload")
+      };
+
+      // Constructor resolution (handles both export styles safely)
+      const EngineCtor =
+        (window.SharedPhysicsEngine && window.SharedPhysicsEngine.SharedPhysicsEngine) ||
+        window.SharedPhysicsEngine;
+
+      if (typeof EngineCtor !== "function") {
+        console.error("SharedPhysicsEngine export is:", window.SharedPhysicsEngine);
+        throw new Error("SharedPhysicsEngine constructor not found. Check shared_engine.js export + script order.");
+      }
+
+      const engine = new EngineCtor(simulator, ui);
+      engine.init();
+    });
+  </script>
+</body>
+</html>
