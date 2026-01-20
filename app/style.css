@@ -1,0 +1,192 @@
+:root{
+  --bg:#0b1220;
+  --panel:#0f1b2f;
+  --panel2:#121f36;
+  --text:#eaf0ff;
+  --muted:#a9b6d6;
+  --line:rgba(255,255,255,.10);
+  --accent:#7c5cff;
+  --accent2:#4fd1c5;
+  --chip:#162545;
+  --chip2:#1a2e55;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: radial-gradient(1200px 600px at 30% 10%, rgba(124,92,255,.25), transparent 60%),
+              radial-gradient(900px 500px at 80% 30%, rgba(79,209,197,.18), transparent 60%),
+              var(--bg);
+  color:var(--text);
+}
+
+.hero{
+  max-width:1100px;
+  margin:28px auto 0;
+  padding:22px 22px 0;
+  border-radius:16px;
+  background: linear-gradient(180deg, rgba(124,92,255,.35), rgba(15,27,47,.85) 65%);
+  border:1px solid var(--line);
+}
+
+.hero__top{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+h1{margin:0 0 6px;font-size:30px}
+.sub{margin:0;color:var(--muted)}
+
+.badges{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.badge{
+  font-size:13px;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background: rgba(15,27,47,.65);
+  color:var(--text);
+}
+.badge.ok{border-color: rgba(79,209,197,.35);}
+
+.tabs{
+  margin-top:18px;
+  display:flex;
+  gap:10px;
+  padding:12px 0 14px;
+  border-top:1px solid var(--line);
+  overflow:auto;
+}
+.tab{
+  text-decoration:none;
+  color:var(--muted);
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid transparent;
+  background: transparent;
+  white-space:nowrap;
+}
+.tab:hover{color:var(--text);border-color:var(--line);background:rgba(15,27,47,.45)}
+.tab.active{color:var(--text);background:rgba(124,92,255,.18);border-color:rgba(124,92,255,.35)}
+
+.wrap{max-width:1100px;margin:18px auto 42px;padding:0 16px}
+.panel{
+  background: rgba(15,27,47,.75);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px;
+}
+.panel__head{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+}
+h2{margin:0 0 6px;font-size:22px}
+.muted{color:var(--muted);font-size:13px;margin:0}
+
+.search input{
+  width:min(360px, 90vw);
+  padding:11px 12px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background: rgba(10,18,32,.55);
+  color:var(--text);
+  outline:none;
+}
+.search input:focus{border-color:rgba(124,92,255,.55)}
+
+.chips{
+  margin:16px 0 12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.divider{
+  width:1px;height:26px;background:var(--line);
+  margin:0 4px;
+}
+
+.chip{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background: rgba(22,37,69,.7);
+  color:var(--text);
+  cursor:pointer;
+  font-size:13px;
+}
+.chip:hover{background:rgba(26,46,85,.85)}
+.chip.active{
+  border-color:rgba(124,92,255,.55);
+  background:rgba(124,92,255,.18);
+}
+.chip.ghost{
+  background: transparent;
+}
+.chip.ghost.active{
+  background:rgba(79,209,197,.10);
+  border-color:rgba(79,209,197,.35);
+}
+
+.tableWrap{
+  overflow:auto;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background: rgba(10,18,32,.35);
+}
+.table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+th, td{
+  padding:12px 12px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+  font-size:13px;
+}
+th{
+  position:sticky;
+  top:0;
+  background: rgba(18,31,54,.95);
+  text-align:left;
+  color:#dfe7ff;
+  font-weight:600;
+}
+td small{color:var(--muted)}
+.kvars{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.pill{
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background: rgba(18,31,54,.65);
+  color: var(--text);
+  font-size:12px;
+}
+
+.panel__foot{
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.link{
+  color: var(--text);
+  text-decoration:none;
+  border:1px solid rgba(124,92,255,.35);
+  background: rgba(124,92,255,.10);
+  padding:8px 12px;
+  border-radius:12px;
+}
+.link:hover{background: rgba(124,92,255,.18)}

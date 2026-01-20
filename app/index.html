@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Physics Simulation Framework — Classification</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__top">
+      <div>
+        <h1>Physics Simulation Framework</h1>
+        <p class="sub">Template-Based Classification System (deployed for review)</p>
+      </div>
+      <div class="badges">
+        <span class="badge ok">Status: Updated</span>
+        <span class="badge">Deadline: Jan 20, 2025 | 2:00 PM KST</span>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <a class="tab" href="../">Overview</a>
+      <a class="tab active" href="./">Classification</a>
+      <a class="tab" href="../classification/Type_Patterns">Type Patterns</a>
+      <a class="tab" href="../classification/Scalability_Summary">Scalability</a>
+      <a class="tab" href="../classification/">README</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <div class="panel__head">
+        <div>
+          <h2>Classification Table</h2>
+          <p class="muted">Filter by category and search across examples, variables, patterns, and equations.</p>
+        </div>
+
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Search simulations..." />
+        </div>
+      </div>
+
+      <div class="chips">
+        <button class="chip active" data-category="All">All</button>
+        <button class="chip" data-category="Motion">Motion</button>
+        <button class="chip" data-category="Force">Force</button>
+        <button class="chip" data-category="Pressure">Pressure</button>
+        <button class="chip" data-category="Energy">Energy</button>
+        <button class="chip" data-category="Oscillation">Oscillation</button>
+
+        <span class="divider"></span>
+
+        <button class="chip ghost" data-type="All">All Types</button>
+        <button class="chip ghost" data-type="Force Interaction">Force Interaction</button>
+        <button class="chip ghost" data-type="Field-Based">Field-Based</button>
+        <button class="chip ghost" data-type="Force–Property Relation">Force–Property Relation</button>
+        <button class="chip ghost" data-type="Pressure / Ratio-Based">Pressure / Ratio-Based</button>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Mechanism Type</th>
+              <th>Example</th>
+              <th>Key Variables</th>
+              <th>Shared Pattern</th>
+              <th>Equation</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel__foot">
+        <span id="count" class="muted">Loading…</span>
+        <a class="link" href="../classification/Examples_Classified_Revised.xlsx">Download Excel</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

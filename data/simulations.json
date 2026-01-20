@@ -1,0 +1,112 @@
+[
+  {
+    "id": "motion_free_fall",
+    "category": "Motion",
+    "type": "Force Interaction",
+    "example": "Free fall (constant acceleration)",
+    "keyVariables": ["initial height", "time", "g"],
+    "sharedPattern": "Update position each frame using kinematics; constant acceleration",
+    "equation": "y = y0 + v0 t - 1/2 g t^2",
+    "notes": "Ideal case without air resistance"
+  },
+  {
+    "id": "motion_projectile",
+    "category": "Motion",
+    "type": "Force Interaction",
+    "example": "Projectile motion (2D)",
+    "keyVariables": ["angle", "initial speed", "g"],
+    "sharedPattern": "Split x/y components; update position each frame",
+    "equation": "x=v0 cosθ t, y=v0 sinθ t - 1/2 g t^2",
+    "notes": "Gravity acts downward; ignore drag"
+  },
+  {
+    "id": "force_friction_block",
+    "category": "Force",
+    "type": "Force Interaction",
+    "example": "Friction block (threshold + motion)",
+    "keyVariables": ["mass", "μ", "applied force", "g"],
+    "sharedPattern": "Resolve forces; compare push vs max friction; then net force → acceleration",
+    "equation": "Fmax=μN, N=mg, a=(Fpush-Ffric)/m",
+    "notes": "Shows static threshold then kinetic motion"
+  },
+  {
+    "id": "force_tension",
+    "category": "Force",
+    "type": "Force Interaction",
+    "example": "Tension in rope (elevator/acceleration)",
+    "keyVariables": ["mass", "g", "acceleration"],
+    "sharedPattern": "Net force balance in 1D; compute unknown force",
+    "equation": "T - mg = ma → T = m(g+a)",
+    "notes": "Great for sign/direction misconception"
+  },
+  {
+    "id": "force_collision",
+    "category": "Force",
+    "type": "Force Interaction",
+    "example": "Collision (momentum exchange)",
+    "keyVariables": ["m1", "m2", "v1", "v2", "elasticity"],
+    "sharedPattern": "Compute post-collision velocities using conservation (elastic/inelastic)",
+    "equation": "m1v1+m2v2 = m1v1' + m2v2'",
+    "notes": "Optional: add KE check for elastic vs inelastic"
+  },
+  {
+    "id": "field_gravity_distance",
+    "category": "Force",
+    "type": "Field-Based",
+    "example": "Gravitational field vs distance (inverse-square)",
+    "keyVariables": ["r", "g0"],
+    "sharedPattern": "Field varies with position; compute derived quantities",
+    "equation": "g(r)=g0/r^2",
+    "notes": "Connects field strength and weight"
+  },
+  {
+    "id": "relation_weight_mass",
+    "category": "Force",
+    "type": "Force–Property Relation",
+    "example": "Weight vs mass (W = mg)",
+    "keyVariables": ["mass", "g"],
+    "sharedPattern": "Direct formula mapping; instant update",
+    "equation": "W = m g",
+    "notes": "Shows mass constant, weight depends on environment"
+  },
+  {
+    "id": "pressure_solid",
+    "category": "Pressure",
+    "type": "Pressure / Ratio-Based",
+    "example": "Pressure on surface (solid)",
+    "keyVariables": ["force", "area"],
+    "sharedPattern": "Ratio-based; compare outcomes across area",
+    "equation": "P = F / A",
+    "notes": "Explains why sharp objects produce higher pressure"
+  },
+  {
+    "id": "pressure_fluid",
+    "category": "Pressure",
+    "type": "Pressure / Ratio-Based",
+    "example": "Liquid pressure with depth",
+    "keyVariables": ["depth", "density", "g"],
+    "sharedPattern": "Compute pressure from depth; compare points",
+    "equation": "P = ρ g h",
+    "notes": "Good for “pressure depends on container shape” misconception"
+  },
+  {
+    "id": "energy_work",
+    "category": "Energy",
+    "type": "Force–Property Relation",
+    "example": "Work done by a force",
+    "keyVariables": ["force", "distance", "angle"],
+    "sharedPattern": "Direct compute from variables; instant update",
+    "equation": "W = F d cosθ",
+    "notes": "Links force direction to energy transfer"
+  },
+  {
+    "id": "osc_spring",
+    "category": "Oscillation",
+    "type": "Force–Property Relation",
+    "example": "Spring oscillation (conceptual)",
+    "keyVariables": ["k", "m", "amplitude"],
+    "sharedPattern": "Periodic behavior; compute period/frequency",
+    "equation": "T = 2π √(m/k)",
+    "notes": "If animated later: sinusoidal position update"
+  }
+]
