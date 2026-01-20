@@ -6,7 +6,6 @@ This site contains the deliverables for the classification and scalability task.
 - [Examples Classifed (Excel)](classification/Examples_Classified_Revised.xlsx)
 - [Type Patterns](classification/Type_Patterns)
 - [Scalability Summary](classification/Scalability_Summary)
-- [README](classification/README)
 
 ## Quick Review Path
 1. Read **Type Patterns**
