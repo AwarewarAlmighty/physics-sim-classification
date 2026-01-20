@@ -39,3 +39,8 @@ Main classification table (includes “Why this is the same mechanism”).
 
 ## Notes
 If any link fails, it is usually due to file naming (capitalization/spaces). All deliverables are located under `/classification/`.
+
+## Live Review
+
+- ✅ **Classification App (filters + search):** [Open App](app/)
+
